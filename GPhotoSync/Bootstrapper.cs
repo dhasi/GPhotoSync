@@ -39,25 +39,27 @@ namespace GPhotoSync
         private void InitializeContainer()
         {
             _container = new WindsorContainer();
-
             _container.AddFacility<TypedFactoryFacility>();
             _container.AddFacility<StartableFacility>();
 
             _container.Register(Component.For<IViewModelLocator>().AsFactory());
             _container.Register(Component.For<IMessenger>().ImplementedBy<Messenger>());
             _container.Register(Component.For<IViewManager>().ImplementedBy<ViewManager>().Start());
-            _container.Register(Component.For<IPhotoRepository>().ImplementedBy<PhotoRepository>());
+            _container.Register(Component.For<IAlbumRepository>().ImplementedBy<AlbumRepository>());
             _container.Register(Component.For<IAuthenticator>().ImplementedBy<OAuth2Authenticator>());
             _container.Register(Component.For<IClientCredentials>().ImplementedBy<ClientCredentials>());
+            _container.Register(Component.For<IAlbumMappingRepository>().ImplementedBy<AlbumMappingRepository>());
+            _container.Register(Component.For<IDialogManager>().ImplementedBy<DialogManager>());
+            _container.Register(Component.For<IPhotoRepository>().ImplementedBy<PhotoRepository>());
 
             //Register ViewModels           
             _container.Register(Types
                 .FromAssembly(GetType().Assembly)
                 .BasedOn<IViewModel>()
                 .LifestyleTransient());
+
+            _container.Install(new SQLCENHibernateInstaller());
         }
-
-
         #endregion Methods
     }
 }

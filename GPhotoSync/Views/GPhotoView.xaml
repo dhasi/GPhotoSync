@@ -5,12 +5,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
     <Grid>
         <!--  Albums  -->
-        <ListBox ItemsSource="{Binding Albums}"
+        <ListBox Background="#FFC3C3C3"
+                 ItemsSource="{Binding Albums}"
                  MouseDoubleClick="OnMouseDoubleClick"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  SelectionMode="Extended"
                  Visibility="{Binding IsAlbumSelected,
                                       Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel />
@@ -18,18 +24,98 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid Width="150" Height="150">
-                        <Border BorderBrush="#555" BorderThickness="2">
+                    <Grid Width="200" Height="200">
+                        <Border Background="#888"
+                                BorderBrush="#555"
+                                BorderThickness="2">
                             <Image Source="{Binding ImageSource}" />
                         </Border>
-                        <Grid Height="30"
+                        <Grid Height="50"
                               VerticalAlignment="Bottom"
                               Background="#cc000000">
-                            <TextBlock Margin="5"
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="5 0 0 0"
                                        HorizontalAlignment="Left"
                                        VerticalAlignment="Center"
+                                       FontSize="16"
                                        Foreground="White"
-                                       Text="{Binding Model.Title}" />
+                                       Text="{Binding Album.Title}" />
+                            <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Margin="5 2 0 0"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Top"
+                                       Foreground="White"
+                                       Text="{Binding Album.PhotoCount,
+                                                      StringFormat='{}{0} Fotos'}" />
+
+                            <Image x:Name="ImgLoadingPhotos"
+                                   Grid.RowSpan="2"
+                                   Grid.Column="1"
+                                   Width="16"
+                                   Height="16"
+                                   Margin="5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Source="/Images/yellow.png"
+                                   Visibility="{Binding LoadingPhotos,
+                                                        Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Image.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation AutoReverse="True"
+                                                                 Duration="0:0:0.5"
+                                                                 From="1.0"
+                                                                 RepeatBehavior="Forever"
+                                                                 Storyboard.TargetName="ImgLoadingPhotos"
+                                                                 Storyboard.TargetProperty="Opacity"
+                                                                 To="0.1" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Image Grid.RowSpan="2"
+                                   Grid.Column="1"
+                                   Width="16"
+                                   Height="16"
+                                   Margin="5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Source="/Images/green.png"
+                                   Visibility="{Binding PhotosLoaded,
+                                                        Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <Image Grid.RowSpan="2"
+                                   Grid.Column="1"
+                                   Width="16"
+                                   Height="16"
+                                   Margin="5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Source="/Images/red.png"
+                                   Visibility="{Binding IsOutDated,
+                                                        Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                            <Image Grid.RowSpan="2"
+                                   Grid.Column="1"
+                                   Width="16"
+                                   Height="16"
+                                   Margin="5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Source="/Images/gray.png"
+                                   Visibility="{Binding AlbumMapping.IsMapped,
+                                                        Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
                         </Grid>
                     </Grid>
                     <!--

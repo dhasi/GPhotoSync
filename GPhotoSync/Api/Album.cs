@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Windows.Media;
 
 namespace GPhotoSync
 {
     public class Album
     {
         #region Properties
+        public string Id { get; set; }
         public Stream ImageStream { get; set; }
         public string Title { get; set; }
+        public int PhotoCount { get; set; }
+        public List<Photo> Photos { get; set; }
         #endregion Properties
     }
 }

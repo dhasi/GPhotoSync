@@ -13,75 +13,50 @@ namespace GPhotoSync
         #endregion Fields
 
         #region Properties
-        public RelayCommand LoginCommand { get; private set; }
+        public GPhotoViewModel GPhoto { get; private set; }
 
-        public RelayCommand ReloadCommand { get; private set; }
-
-        private LoginViewModel _loginVIewModel;
-        public LoginViewModel LoginViewModel
-        {
-            get { return _loginVIewModel; }
-            set
-            {
-                _loginVIewModel = value;
-                RaisePropertyChanged(() => LoginViewModel);
-            }
-        }
-
-        public GPhotoViewModel GPhoto { get; set; }
-        //public AlbumListViewModel AlbumList { get; private set; }
+        public IDialogManager DialogManager { get; private set; }
         #endregion Properties
 
         #region Ctor
-        public MainViewModel(IMessenger messenger, IViewModelLocator viewModelLocator)
+        public MainViewModel(IMessenger messenger, IViewModelLocator viewModelLocator, IDialogManager dialogManager)
             : base(messenger)
         {
             if (viewModelLocator == null)
                 throw new ArgumentNullException("viewModelLocator");
-            _viewModelLocator = viewModelLocator;
+            if (dialogManager == null)
+                throw new ArgumentNullException("dialogManager");
 
-            //AlbumList = _viewModelLocator.Locate<AlbumListViewModel>();
-            LoginViewModel = _viewModelLocator.Locate<LoginViewModel>();
+            _viewModelLocator = viewModelLocator;
             GPhoto = _viewModelLocator.Locate<GPhotoViewModel>();
-            //AlbumList.LoadAlbumsAsync();
-            InitializeCommands();
+            DialogManager = dialogManager;
         }
 
 
         #endregion Ctor
 
         #region Methods
-        private void InitializeCommands()
+
+
+        public async void TryLoadAlbums()
         {
-            LoginCommand = new RelayCommand(Login, CanLogin);
-            ReloadCommand = new RelayCommand(Reload, CanReload);
+            try
+            {
+                await GPhoto.LoadAlbums();
+            }
+            catch (Exception ex)
+            {
+                GPhoto.Login();
+            }
+            //GPhoto.LoadAlbums()
+            //    .ContinueWith(r =>
+            //    {
+            //        if (r.IsFaulted)
+            //            GPhoto.Login();
+            //    }, TaskScheduler.FromCurrentSynchronizationContext()); ;
         }
 
-        public void TryLoadAlbums()
-        {
-            GPhoto.LoadAlbums()
-                .ContinueWith(r =>
-                {
-                    if (r.IsFaulted)
-                        Login();
-                }, TaskScheduler.FromCurrentSynchronizationContext()); ;
-        }
 
-        private bool CanLogin() { return true; }
-
-        public void Login()
-        {
-            if (CanLogin())
-                LoginViewModel.IsVisible = true;
-        }
-
-        public bool CanReload() { return true; }
-
-        public void Reload()
-        {
-            if (CanReload())
-                GPhoto.LoadAlbums();
-        }
         #endregion Methods
     }
 }

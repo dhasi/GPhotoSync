@@ -2,9 +2,14 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:gps="clr-namespace:GPhotoSync">
 
-    <!--
-        <DataTemplate DataType="{x:Type gps:OAuth2ViewModel}">
-        <
-        </DataTemplate>
-    -->
+
+    <DataTemplate DataType="{x:Type gps:LoginViewModel}">
+        <gps:LoginView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type gps:ErrorViewModel}">
+        <gps:ErrorView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type gps:AlbumMappingViewModel}">
+        <gps:AlbumMappingView />
+    </DataTemplate>
 </ResourceDictionary>

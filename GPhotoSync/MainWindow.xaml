@@ -14,15 +14,16 @@
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Start">
                 <RibbonGroup Header="G+Photo">
-                    <RibbonButton Command="{Binding LoginCommand}"
+                    <RibbonButton Command="{Binding GPhoto.LoginCommand}"
                                   Label="Login"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-                    <RibbonButton Command="{Binding ReloadCommand}"
+                    <RibbonButton Command="{Binding GPhoto.ReloadCommand}"
                                   Label="Reload"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-                    <RibbonButton Label="Commit Sinlge"
+                    <RibbonButton Command="{Binding GPhoto.MapAlbumCommand}"
+                                  Label="Map"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
                     <RibbonButton Label="Commit All"
@@ -59,9 +60,12 @@
                 <!--  <gps:GPhotoView Grid.Column="2" />  -->
 
             </Grid>
-            <gps:LoginView HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           DataContext="{Binding LoginViewModel}" />
+            <Grid gps:DialogManagerExtension.DialogManager="{Binding DialogManager}" />
+            <!--
+                <gps:LoginView HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                DataContext="{Binding LoginViewModel}" />
+            -->
         </Grid>
     </DockPanel>
     <!--

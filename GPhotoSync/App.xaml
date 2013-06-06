@@ -4,7 +4,20 @@
              xmlns:gps="clr-namespace:GPhotoSync"
              Startup="OnStartup">
     <Application.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <gps:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DataTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <gps:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            
+            <Style x:Key="HeaderTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+        </ResourceDictionary>
+
     </Application.Resources>
 </Application>

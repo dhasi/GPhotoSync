@@ -17,17 +17,6 @@ namespace GPhotoSync
         #endregion Fields
 
         #region Properties
-        private bool _isVisible;
-        public bool IsVisible
-        {
-            get { return _isVisible; }
-            set
-            {
-                _isVisible = value;
-                RaisePropertyChanged(() => IsVisible);
-            }
-        }
-
         private string _userName;
         public string UserName
         {
@@ -49,6 +38,8 @@ namespace GPhotoSync
                 RaisePropertyChanged(() => Password);
             }
         }
+
+        public Action OnLogin { get; set; }
         #endregion Properties
 
         #region Ctor
@@ -57,7 +48,6 @@ namespace GPhotoSync
         {
             _clientCredentials = credentials;
             InitializeCommands();
-            IsVisible = false;
         }
         #endregion Ctor
 
@@ -65,6 +55,7 @@ namespace GPhotoSync
         private void InitializeCommands()
         {
             LoginCommand = new RelayCommand(Login, CanLogin);
+            CancelCommand = new RelayCommand(Cancel);
         }
 
         public RelayCommand LoginCommand { get; private set; }
@@ -75,15 +66,36 @@ namespace GPhotoSync
         {
             if (!CanLogin()) return;
 
-            var service = new PicasaService("GPhotoSync");
-            service.setUserCredentials(UserName, Password);
+            try
+            {
+                var service = new PicasaService("GPhotoSync");
+                service.setUserCredentials(UserName, Password);
 
-            _clientCredentials.AccessToken = service.QueryClientLoginToken();
-            _clientCredentials.User = UserName;
-            _clientCredentials.Save();
+                _clientCredentials.AccessToken = service.QueryClientLoginToken();
+                _clientCredentials.User = UserName;
+                _clientCredentials.Save();
 
-            MessengerInstance.Send<LoginMessage>(new LoginMessage());
-            IsVisible = false;
+                MessengerInstance.Send(new CloseDialogMessage(this));
+                if (OnLogin != null)
+                    OnLogin();
+            }
+            catch (Exception ex)
+            {
+                MessengerInstance.Send(new ShowDialogMessage
+                {
+                    Content = new ErrorViewModel(MessengerInstance)
+                    {
+                        Message = ex.Message
+                    }
+                });
+            }
+        }
+
+        public RelayCommand CancelCommand { get; private set; }
+
+        public void Cancel()
+        {
+            MessengerInstance.Send(new CloseDialogMessage(this));
         }
         #endregion Methods
     }

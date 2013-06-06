@@ -4,44 +4,78 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:gps="clr-namespace:GPhotoSync"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             Width="400"
-             Height="300"
-             Background="Green"
-             Visibility="{Binding IsVisible,
-                                  Converter={StaticResource BooleanToVisibilityConverter}}"
-             d:DesignHeight="300"
-             d:DesignWidth="300"
-             mc:Ignorable="d">
+             Width="300"
+             Height="200">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
-            <RowDefinition Height="30" />
-            <RowDefinition />
-            <RowDefinition Height="30" />
-        </Grid.RowDefinitions>
+        <Border Background="DarkGray"
+                BorderBrush="Gray"
+                BorderThickness="2"
+                CornerRadius="5">
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0"
+                           Width="48"
+                           Height="48"
+                           Source="/Images/googleplus-icon.png" />
+                    <TextBlock Grid.Column="1"
+                               Style="{StaticResource HeaderTitleStyle}"
+                               Text="Google+ Login" />
+                </Grid>
+                <Grid Grid.Row="1" Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35" />
+                        <RowDefinition Height="35" />
+                        <RowDefinition />
+                        <RowDefinition Height="30" />
+                    </Grid.RowDefinitions>
 
-        <Label Grid.Row="0"
-               Grid.Column="0"
-               Content="Username:" />
-        <TextBox Grid.Row="0"
-                 Grid.Column="1"
-                 Text="{Binding UserName}" />
+                    <Label Grid.Row="0"
+                           Grid.Column="0"
+                           VerticalAlignment="Center"
+                           Content="Username:" />
+                    <TextBox Grid.Row="0"
+                             Grid.Column="1"
+                             Margin="5 5 10 5"
+                             Text="{Binding UserName}" />
 
-        <Label Grid.Row="1"
-               Grid.Column="0"
-               Content="Password:" />
-        <PasswordBox Grid.Row="1"
-                     Grid.Column="1"
-                     PasswordChanged="OnPasswordChanged" />
+                    <Label Grid.Row="1"
+                           Grid.Column="0"
+                           VerticalAlignment="Center"
+                           Content="Password:" />
+                    <PasswordBox Grid.Row="1"
+                                 Grid.Column="1"
+                                 Margin="5 5 10 5"
+                                 PasswordChanged="OnPasswordChanged" />
 
-        <Button Grid.Row="3"
-                Grid.ColumnSpan="2"
-                HorizontalAlignment="Center"
-                Command="{Binding LoginCommand}"
-                Content="Login" />
+                    <StackPanel Grid.Row="3"
+                                Grid.ColumnSpan="2"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <Button Width="80"
+                                Margin="5 2 2 2"
+                                HorizontalAlignment="Right"
+                                Command="{Binding LoginCommand}"
+                                Content="Login" />
+                        <Button Width="80"
+                                Margin="2 2 5 2"
+                                HorizontalAlignment="Right"
+                                Command="{Binding CancelCommand}"
+                                Content="Cancel" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
