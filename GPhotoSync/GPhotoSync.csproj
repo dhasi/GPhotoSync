@@ -112,11 +112,16 @@
     <Compile Include="Api\Photo.cs" />
     <Compile Include="Api\PhotoRepository.cs" />
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Controls\ProgressControl.xaml.cs">
+      <DependentUpon>ProgressControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Core\Comparer.cs" />
     <Compile Include="Core\DialogManager.cs" />
     <Compile Include="Core\InverseBooleanToVisibilityConverter.cs" />
     <Compile Include="Core\IView.cs" />
     <Compile Include="Core\IViewModel.cs" />
     <Compile Include="Core\IViewModelLocator.cs" />
+    <Compile Include="Core\MimeTypes.cs" />
     <Compile Include="Core\PasswordBoxExtensions.cs" />
     <Compile Include="Core\SQLCENHibernateInstaller.cs" />
     <Compile Include="Core\ViewManager.cs" />
@@ -142,9 +147,10 @@
     <Compile Include="Views\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\UserControl1.xaml.cs">
-      <DependentUpon>UserControl1.xaml</DependentUpon>
-    </Compile>
+    <Page Include="Controls\ProgressControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DataTemplates.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -174,10 +180,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LoginView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\UserControl1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -229,6 +231,7 @@
   <ItemGroup>
     <Resource Include="Images\googleplus-icon.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

@@ -10,7 +10,6 @@ namespace GPhotoSync
         public Stream ImageStream { get; set; }
         public string Title { get; set; }
         public int PhotoCount { get; set; }
-        public List<Photo> Photos { get; set; }
         #endregion Properties
     }
 }

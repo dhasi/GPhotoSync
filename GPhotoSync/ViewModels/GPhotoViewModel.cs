@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace GPhotoSync
 {
@@ -19,6 +20,8 @@ namespace GPhotoSync
         private readonly IPhotoRepository _photoRepository;
         private readonly IAlbumMappingRepository _mappingRepository;
         private readonly IViewModelLocator _viewModelLocator;
+        private readonly List<AlbumViewModel> _loadAlbums = new List<AlbumViewModel>();
+        private readonly PhotoComparer _photoComparer = new PhotoComparer();
         #endregion Fields
 
         #region Properties
@@ -42,16 +45,26 @@ namespace GPhotoSync
             {
                 _isBusy = value;
                 RaisePropertyChanged(() => IsBusy);
+                RaisePropertyChanged(() => LoadingAlbums);
                 CommandManager.InvalidateRequerySuggested();
             }
         }
+
         public RelayCommand LoginCommand { get; private set; }
 
-        public RelayCommand ReloadCommand { get; private set; }
+        public RelayCommand ReloadAlbumsCommand { get; private set; }
+
+        public RelayCommand ReloadStatesCommand { get; private set; }
 
         public RelayCommand MapAlbumCommand { get; private set; }
 
+        public RelayCommand DownloadAlbumsCommand { get; private set; }
+
+        public RelayCommand UploadAlbumsCommand { get; private set; }
+
         public ObservableCollection<AlbumViewModel> Albums { get; private set; }
+
+        public bool LoadingAlbums { get { return IsBusy && Albums.Count == 0; } }
 
         private AlbumViewModel _selectedAlbum;
         public AlbumViewModel SelectedAlbum
@@ -67,6 +80,29 @@ namespace GPhotoSync
 
         public bool IsAlbumSelected { get { return SelectedAlbum != null; } }
 
+        private bool _hideUnmapped;
+        public bool HideUnmapped
+        {
+            get { return _hideUnmapped; }
+            set
+            {
+                _hideUnmapped = value;
+                RaisePropertyChanged(() => HideUnmapped);
+                UpdateAlbums();
+            }
+        }
+
+        private bool _hideUnchanged;
+        public bool HideUnchanged
+        {
+            get { return _hideUnchanged; }
+            set
+            {
+                _hideUnchanged = value;
+                RaisePropertyChanged(() => HideUnchanged);
+                UpdateAlbums();
+            }
+        }
         #endregion Properties
 
         #region Ctor
@@ -102,25 +138,33 @@ namespace GPhotoSync
         private void InitializeCommands()
         {
             LoginCommand = new RelayCommand(Login, CanLogin);
-            ReloadCommand = new RelayCommand(Reload, CanReload);
+            ReloadAlbumsCommand = new RelayCommand(ReloadAlbums, CanReloadAlbums);
+            ReloadStatesCommand = new RelayCommand(ReloadStates, CanReloadStates);
             MapAlbumCommand = new RelayCommand(MapAlbum, CanMapAlbum);
+            DownloadAlbumsCommand = new RelayCommand(DownloadAlbums, CanDownloadAlbums);
+            UploadAlbumsCommand = new RelayCommand(UploadAlbums, CanUploadAlbums);
         }
 
         public async Task LoadAlbums()
         {
+            _loadAlbums.Clear();
             Albums.Clear();
             IsBusy = true;
 
             try
             {
+                IsLoggedIn = true;
                 var albums = await Task.Factory.StartNew<List<Album>>(_albumRepository.GetList);
                 var mappings = await Task.Factory.StartNew<List<AlbumMapping>>(_mappingRepository.GetList);
 
-                albums.ForEach(a => Albums.Add(new AlbumViewModel(a)
+                albums.ForEach(a => _loadAlbums.Add(new AlbumViewModel(a)
                 {
                     AlbumMapping = mappings.FirstOrDefault(m => m.AlbumId == a.Id) ?? new AlbumMapping { AlbumId = a.Id }
                 }));
 
+                UpdateAlbums();
+
+                RaisePropertyChanged(() => LoadingAlbums);
                 var mappedAlbums = Albums.Where(x => x.AlbumMapping.IsMapped);
 
                 if (mappedAlbums.Any())
@@ -129,7 +173,8 @@ namespace GPhotoSync
                         .AsParallel()
                         .Select(async album =>
                         {
-                            await LoadPhotos(album);
+                            await LoadGPhotos(album);
+                            await LoadLocalPhotos(album);
                             await ComparePhotos(album);
                         });
                     foreach (var task in tasks)
@@ -139,30 +184,43 @@ namespace GPhotoSync
             }
             catch (Exception ex)
             {
+                IsLoggedIn = false;
                 IsBusy = false;
                 throw ex;
             }
         }
 
-        private async Task LoadPhotos(AlbumViewModel album)
+        private async Task LoadGPhotos(AlbumViewModel album)
         {
             album.LoadingPhotos = true;
-            var photos = await Task.Factory.StartNew<List<Photo>>(() => _photoRepository.GetListFor(album.Album.Id));
-            album.Album.Photos = photos;
+            var removePhotos = await Task.Factory.StartNew<List<Photo>>(() => _photoRepository.GetListFor(album.Album.Id));
+            album.Photos = removePhotos;
             album.PhotosLoaded = true;
+        }
+
+        private async Task LoadLocalPhotos(AlbumViewModel album)
+        {
+            if (!Directory.Exists(album.AlbumMapping.LocalPath)) return;
+
+            var files = await Task.Factory.StartNew<List<Photo>>(() => Directory.GetFiles(album.AlbumMapping.LocalPath)
+               .Select(x => new FileInfo(x))
+               .Where(f => (f.Attributes & FileAttributes.Hidden) == 0)
+               .Select(x => new Photo { Title = x.Name })
+               .ToList());
+
+            album.LocalPhotos = files;
+
         }
 
         private async Task ComparePhotos(AlbumViewModel album)
         {
-            if (!Directory.Exists(album.AlbumMapping.LocalPath)) return;
+            if (!album.AlbumMapping.IsMapped) return;
 
-            var files = await Task.Factory.StartNew<List<FileInfo>>(() => Directory.GetFiles(album.AlbumMapping.LocalPath)
-                .Select(x => new FileInfo(x))
-                .Where(f => (f.Attributes & FileAttributes.Hidden) == 0)
-                .ToList());
+            var localChanges = await Task.Factory.StartNew(() => album.LocalPhotos.Except(album.Photos, _photoComparer));
+            var remoteChanges = await Task.Factory.StartNew(() => album.Photos.Except(album.LocalPhotos, _photoComparer));
 
-            var outDated = await Task.Factory.StartNew<bool>(() => files.Any(x => !album.Album.Photos.Any(p => p.Title == x.Name)));
-            album.IsOutDated = outDated;
+            album.HasLocalChanges = localChanges.Any();
+            album.HasRemoteChanges = remoteChanges.Any();
         }
 
         private bool CanLogin() { return !IsLoggedIn && !IsBusy; }
@@ -184,12 +242,47 @@ namespace GPhotoSync
             }
         }
 
-        public bool CanReload() { return !IsBusy; }
+        public bool CanReloadAlbums() { return !IsBusy && IsLoggedIn; }
 
-        public void Reload()
+        public async void ReloadAlbums()
         {
-            if (CanReload())
-                LoadAlbums();
+            if (CanReloadAlbums())
+                await LoadAlbums();
+        }
+
+        public bool CanReloadStates() { return !IsBusy && IsLoggedIn; }
+
+        public async void ReloadStates()
+        {
+            IsBusy = true;
+            var mappedAlbums = Albums.Where(x => x.AlbumMapping.IsMapped);
+
+            if (mappedAlbums.Any())
+            {
+                var tasks = mappedAlbums
+                    .AsParallel()
+                    .Select(async album =>
+                    {
+                        await LoadGPhotos(album);
+                        await LoadLocalPhotos(album);
+                        await ComparePhotos(album);
+                    });
+                foreach (var task in tasks)
+                    await task;
+            }
+            IsBusy = false;
+
+        }
+
+        private void UpdateAlbums()
+        {
+            Albums.Clear();
+            _loadAlbums
+                .Where(x => (HideUnmapped ? x.AlbumMapping.IsMapped : true))
+                .Where(x => (HideUnchanged ? x.HasChanges : true))
+                .ToList()
+                .ForEach(a => Albums.Add(a));
+
         }
 
         public bool CanMapAlbum() { return Albums.Count(x => x.IsSelected) == 1; }
@@ -211,6 +304,43 @@ namespace GPhotoSync
                 }
             }
         }
+
+        public bool CanDownloadAlbums() { return Albums.Any(x => x.IsSelected && x.HasRemoteChanges); }
+
+        public void DownloadAlbums()
+        {
+            Albums
+                 .Where(x => x.IsSelected && x.AlbumMapping.IsMapped)
+                 .ToList()
+                 .ForEach(album =>
+                 {
+                     //create & execute download tasks for each album
+                     //each task downloads new photos from g+photos
+                     //album.SynchronizingPhotos = true;
+                     //var remoteChanges = await Task.Factory.StartNew(() => album.Photos.Except(album.LocalPhotos, _photoComparer));
+                     //var localChanges = await Task.Factory.StartNew(() => album.LocalPhotos.Except(album.Photos, _photoComparer));
+                     //remoteChanges
+                     //    .AsParallel()
+                     //    .ForAll(async p =>
+                     //    {
+                     //        Thread.Sleep(10000);
+                     //        var albumLocation = album.AlbumMapping.LocalPath;
+                     //        var fileName = Path.Combine(albumLocation, p.Title);
+                     //        await Task.Factory.StartNew(() => _photoRepository.DownloadPhoto(p.Path, fileName));
+                     //    });
+                     //album.SynchronizingPhotos = false;
+                 });
+            ReloadStates();
+        }
+
+        public bool CanUploadAlbums() { return Albums.Any(x => x.IsSelected && x.HasLocalChanges); }
+
+        public async void UploadAlbums()
+        {
+
+        }
         #endregion Methods
+
+
     }
 }

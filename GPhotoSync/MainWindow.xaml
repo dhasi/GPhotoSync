@@ -18,55 +18,66 @@
                                   Label="Login"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-                    <RibbonButton Command="{Binding GPhoto.ReloadCommand}"
-                                  Label="Reload"
+                    <RibbonButton Command="{Binding GPhoto.ReloadAlbumsCommand}"
+                                  Label="Reload Albums"
+                                  LargeImageSource="Images/blueLarge.png"
+                                  SmallImageSource="Images/blue.png" />
+                    <RibbonButton Command="{Binding GPhoto.ReloadStatesCommand}"
+                                  Label="Reload States"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
                     <RibbonButton Command="{Binding GPhoto.MapAlbumCommand}"
                                   Label="Map"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-                    <RibbonButton Label="Commit All"
+                </RibbonGroup>
+                <RibbonGroup Header="Sync">
+                    <RibbonButton Command="{Binding GPhoto.DownloadAlbumsCommand}"
+                                  Label="Download Album"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-                    <RibbonButton Label="Up"
+                    <RibbonButton Command="{Binding GPhoto.UploadAlbumsCommand}"
+                                  Label="Upload Album"
                                   LargeImageSource="Images/blueLarge.png"
                                   SmallImageSource="Images/blue.png" />
-
+                    <!--
+                        <RibbonButton Label="Download All"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                        <RibbonButton Label="Upload All"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                    -->
+                </RibbonGroup>
+                <RibbonGroup Header="View">
+                    <RibbonCheckBox IsChecked="{Binding GPhoto.HideUnmapped}" Label="Hide unmapped Albums" />
+                    <RibbonCheckBox IsChecked="{Binding GPhoto.HideUnchanged}" Label="Hide unchanged Albums" />
+                    <!--
+                        <RibbonButton Label="Show/Hide Unmapped Albums"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                        <RibbonButton Label="Upload Album"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                        <RibbonButton Label="Download All"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                        <RibbonButton Label="Upload All"
+                        LargeImageSource="Images/blueLarge.png"
+                        SmallImageSource="Images/blue.png" />
+                    -->
                 </RibbonGroup>
             </RibbonTab>
         </ribbon:Ribbon>
+        <StatusBar Height="25" DockPanel.Dock="Bottom" />
         <Grid>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <!--
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    -->
-                </Grid.ColumnDefinitions>
 
-                <gps:GPhotoView Grid.Column="0" DataContext="{Binding GPhoto}" />
-                <!--
-                    <GridSplitter Grid.Column="1"
-                    Width="5"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Stretch" />
-                    
-                    <Grid Grid.Column="2">
-                    <TextBlock Text="Test" />
-                    </Grid>
-                -->
-                <!--  <gps:GPhotoView Grid.Column="2" />  -->
-
-            </Grid>
+            <gps:GPhotoView Grid.Column="0" DataContext="{Binding GPhoto}" />
+            <gps:ProgressControl Visibility="{Binding GPhoto.LoadingAlbums, Converter={StaticResource BooleanToVisibilityConverter}}" />
             <Grid gps:DialogManagerExtension.DialogManager="{Binding DialogManager}" />
-            <!--
-                <gps:LoginView HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                DataContext="{Binding LoginViewModel}" />
-            -->
+
         </Grid>
+
     </DockPanel>
     <!--
         <Grid>

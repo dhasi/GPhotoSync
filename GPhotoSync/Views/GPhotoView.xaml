@@ -15,6 +15,13 @@
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="ToolTip">
+                        <Setter.Value>
+                            <ToolTip ToolTipService.InitialShowDelay="3000">
+                                <TextBlock Text="{Binding ToolTipMessage, StringFormat='{}Albums has {0} changed item(s).'}" />
+                            </ToolTip>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemsPanel>
@@ -58,6 +65,34 @@
                                        Text="{Binding Album.PhotoCount,
                                                       StringFormat='{}{0} Fotos'}" />
 
+                            <Image x:Name="SynchronizingPhotos"
+                                   Grid.RowSpan="2"
+                                   Grid.Column="1"
+                                   Width="16"
+                                   Height="16"
+                                   Margin="5"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Source="/Images/brown.png"
+                                   Visibility="{Binding SynchronizingPhotos,
+                                                        Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Image.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation AutoReverse="True"
+                                                                 Duration="0:0:0.5"
+                                                                 From="1.0"
+                                                                 RepeatBehavior="Forever"
+                                                                 Storyboard.TargetName="ImgLoadingPhotos"
+                                                                 Storyboard.TargetProperty="Opacity"
+                                                                 To="0.1" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            
                             <Image x:Name="ImgLoadingPhotos"
                                    Grid.RowSpan="2"
                                    Grid.Column="1"
@@ -103,7 +138,7 @@
                                    HorizontalAlignment="Right"
                                    VerticalAlignment="Center"
                                    Source="/Images/red.png"
-                                   Visibility="{Binding IsOutDated,
+                                   Visibility="{Binding HasChanges,
                                                         Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                             <Image Grid.RowSpan="2"

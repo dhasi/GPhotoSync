@@ -1,15 +1,20 @@
-﻿using Google.GData.Photos;
+﻿using Google.GData.Client;
+using Google.GData.Photos;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
 
 namespace GPhotoSync
 {
     public interface IPhotoRepository
     {
         List<Photo> GetListFor(string albumId);
+
+        void UploadPhotoTo(string albumId, string filename);
+
+        void DownloadPhoto(string url, string filename);
     }
 
     public class PhotoRepository : IPhotoRepository
@@ -37,6 +42,7 @@ namespace GPhotoSync
             service.SetAuthenticationToken(_credentials.AccessToken);
 
             var query = new PhotoQuery(PicasaQuery.CreatePicasaUri(_credentials.User, albumId));
+            query.ExtraParameters = "imgmax=d";
             var feed = service.Query(query);
 
             if (feed != null)
@@ -46,20 +52,47 @@ namespace GPhotoSync
                     .Select(x =>
                     {
                         var accessor = new PhotoAccessor(x);
-                        
+
                         return new Photo
                         {
                             Id = accessor.Id,
                             Title = accessor.PhotoTitle,
-                            Size = accessor.Size
+                            Path = x.Media.Content.Url
                         };
-                    })
-                    .ToList();
-                return list;
+                    });
+
+                return list.OfType<Photo>().ToList();
             }
             else
                 return new List<Photo>();
         }
+
+        public void UploadPhotoTo(string albumId, string filename)
+        {
+            var service = new PicasaService("GPhotoSync");
+            service.SetAuthenticationToken(_credentials.AccessToken);
+
+            var query = new PhotoQuery(PicasaQuery.CreatePicasaUri(_credentials.User, albumId));
+            var feed = service.Query(query);
+
+            var media = new MediaFileSource(filename, MimeTypes.GetMimeType(Path.GetExtension(filename)));
+            var photo = new PhotoEntry();
+            photo.Title = new AtomTextConstruct { Text = Path.GetFileNameWithoutExtension(filename) };
+            photo.MediaSource = media;
+
+            service.Insert(feed, photo);
+        }
+
+        public void DownloadPhoto(string url, string filename)
+        {
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(url, filename);
+            }
+        }
         #endregion Methods
+
+
+
     }
 }

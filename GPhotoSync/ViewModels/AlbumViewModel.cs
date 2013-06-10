@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -44,6 +45,10 @@ namespace GPhotoSync
 
         public AlbumMapping AlbumMapping { get; set; }
 
+        public List<Photo> Photos { get; set; }
+
+        public List<Photo> LocalPhotos { get; set; }
+
         private bool _loadingPhotos;
         public bool LoadingPhotos
         {
@@ -52,6 +57,8 @@ namespace GPhotoSync
             {
                 _loadingPhotos = value;
                 RaisePropertyChanged(() => LoadingPhotos);
+                if (LoadingPhotos)
+                    PhotosLoaded = false;
             }
         }
 
@@ -66,16 +73,44 @@ namespace GPhotoSync
             }
         }
 
-        private bool _isOutDated;
-        public bool IsOutDated
+        private bool _synchronizingPhotos;
+        public bool SynchronizingPhotos
         {
-            get { return _isOutDated; }
+            get { return _synchronizingPhotos; }
             set
             {
-                _isOutDated = value;
-                RaisePropertyChanged(() => IsOutDated);
+                _synchronizingPhotos = value;
+                RaisePropertyChanged(() => SynchronizingPhotos);
             }
         }
+
+        public bool HasChanges { get { return HasRemoteChanges || HasLocalChanges; } }
+
+        private bool _hasRemoveChanges;
+        public bool HasRemoteChanges
+        {
+            get { return _hasRemoveChanges; }
+            set
+            {
+                _hasRemoveChanges = value;
+                RaisePropertyChanged(() => HasRemoteChanges);
+                RaisePropertyChanged(() => HasChanges);
+            }
+        }
+
+        private bool _hasLocalChanges;
+        public bool HasLocalChanges
+        {
+            get { return _hasLocalChanges; }
+            set
+            {
+                _hasLocalChanges = value;
+                RaisePropertyChanged(() => HasLocalChanges);
+                RaisePropertyChanged(() => HasChanges);
+            }
+        }
+
+        public string ToolTipMessage { get { return "xxx"; } }
         #endregion Properties
 
         #region Ctor
